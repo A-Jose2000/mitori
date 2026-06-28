@@ -1,0 +1,78 @@
+<svg width="920" height="260" viewBox="0 0 920 260" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Mitori</title>
+  <desc id="desc">Mitori logo showing a PostgreSQL database, connected table cards, and the Mitori wordmark.</desc>
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="920" y2="260" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#101418"/>
+      <stop offset="0.58" stop-color="#111D22"/>
+      <stop offset="1" stop-color="#171A24"/>
+    </linearGradient>
+    <linearGradient id="cyan" x1="104" y1="58" x2="268" y2="196" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7DD3FC"/>
+      <stop offset="1" stop-color="#22D3EE"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="172" y1="86" x2="332" y2="178" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#86EFAC"/>
+      <stop offset="1" stop-color="#34D399"/>
+    </linearGradient>
+    <filter id="softShadow" x="-20%" y="-30%" width="140%" height="160%" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#020617" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+
+  <rect x="10" y="10" width="900" height="240" rx="28" fill="url(#panel)"/>
+  <rect x="10.5" y="10.5" width="899" height="239" rx="27.5" stroke="#2DD4BF" stroke-opacity="0.26"/>
+
+  <g opacity="0.42">
+    <circle cx="84" cy="55" r="2.2" fill="#6EE7B7"/>
+    <circle cx="158" cy="38" r="2.2" fill="#38BDF8"/>
+    <circle cx="248" cy="51" r="2.2" fill="#FBBF24"/>
+    <circle cx="354" cy="42" r="2.2" fill="#A78BFA"/>
+    <circle cx="834" cy="73" r="2.2" fill="#6EE7B7"/>
+    <circle cx="781" cy="205" r="2.2" fill="#38BDF8"/>
+    <circle cx="866" cy="187" r="2.2" fill="#FBBF24"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <path d="M91 94C91 75.8 117.4 61 150 61C182.6 61 209 75.8 209 94V171C209 189.2 182.6 204 150 204C117.4 204 91 189.2 91 171V94Z" fill="#15222A" stroke="url(#cyan)" stroke-width="3"/>
+    <path d="M209 94C209 112.2 182.6 127 150 127C117.4 127 91 112.2 91 94" stroke="#7DD3FC" stroke-width="3"/>
+    <path d="M209 132C209 150.2 182.6 165 150 165C117.4 165 91 150.2 91 132" stroke="#38BDF8" stroke-opacity="0.72" stroke-width="3"/>
+    <ellipse cx="150" cy="94" rx="59" ry="33" fill="#172A31" stroke="#BAE6FD" stroke-opacity="0.42" stroke-width="2"/>
+  </g>
+
+  <g stroke-linecap="round" stroke-width="2.4">
+    <path d="M218 101C250 80 277 78 309 98" stroke="#22D3EE"/>
+    <path d="M218 142C248 154 276 155 309 135" stroke="#34D399"/>
+    <path d="M221 176C257 204 288 204 326 176" stroke="#FBBF24"/>
+  </g>
+
+  <g filter="url(#softShadow)">
+    <rect x="309" y="70" width="112" height="56" rx="10" fill="#172026" stroke="#38BDF8" stroke-width="2"/>
+    <rect x="326" y="91" width="62" height="5" rx="2.5" fill="#E5EEF4"/>
+    <rect x="326" y="105" width="42" height="5" rx="2.5" fill="#91A5B1"/>
+    <circle cx="400" cy="98" r="6" fill="#34D399"/>
+
+    <rect x="329" y="148" width="124" height="58" rx="10" fill="#172026" stroke="#FBBF24" stroke-width="2"/>
+    <rect x="348" y="170" width="71" height="5" rx="2.5" fill="#E5EEF4"/>
+    <rect x="348" y="185" width="51" height="5" rx="2.5" fill="#91A5B1"/>
+    <circle cx="431" cy="178" r="6" fill="#22D3EE"/>
+
+    <rect x="248" y="119" width="96" height="52" rx="10" fill="#172026" stroke="url(#mint)" stroke-width="2"/>
+    <rect x="264" y="138" width="50" height="5" rx="2.5" fill="#E5EEF4"/>
+    <rect x="264" y="152" width="35" height="5" rx="2.5" fill="#91A5B1"/>
+    <circle cx="324" cy="145" r="6" fill="#A78BFA"/>
+  </g>
+
+  <g>
+    <text x="503" y="120" fill="#F8FAFC" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="64" font-weight="800" letter-spacing="0">Mitori</text>
+    <text x="508" y="156" fill="#A9BAC5" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="21" font-weight="500" letter-spacing="0">PostgreSQL visibility inside VS Code</text>
+    <g transform="translate(507 182)">
+      <rect width="104" height="28" rx="14" fill="#12302E" stroke="#2DD4BF" stroke-opacity="0.54"/>
+      <text x="18" y="19" fill="#A7F3D0" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="0">read-only</text>
+      <rect x="118" width="156" height="28" rx="14" fill="#15283B" stroke="#38BDF8" stroke-opacity="0.54"/>
+      <text x="136" y="19" fill="#BAE6FD" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="0">relationship maps</text>
+      <rect x="288" width="98" height="28" rx="14" fill="#302817" stroke="#FBBF24" stroke-opacity="0.54"/>
+      <text x="306" y="19" fill="#FDE68A" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="0">sample rows</text>
+    </g>
+  </g>
+</svg>

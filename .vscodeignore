@@ -1,0 +1,9 @@
+.vscode/**
+.vscode-test/**
+src/**
+scripts/**
+out/**
+*.map
+tsconfig.json
+*.tsbuildinfo
+mitori_vscode_plugin_plan.md

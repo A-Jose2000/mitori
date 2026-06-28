@@ -1,0 +1,142 @@
+{
+  "name": "mitori",
+  "displayName": "Mitori",
+  "description": "A read-only PostgreSQL visualizer for VS Code.",
+  "version": "0.0.1",
+  "publisher": "mitori",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onView:mitori.schemaView",
+    "onCommand:mitori.connect",
+    "onCommand:mitori.refresh",
+    "onCommand:mitori.openTablePreview",
+    "onCommand:mitori.openTablePreviewInNewTab",
+    "onCommand:mitori.openReferencedTablePreview",
+    "onCommand:mitori.openRelationshipMap",
+    "onCommand:mitori.explain"
+  ],
+  "main": "./dist/extension.js",
+  "type": "module",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "vscode:prepublish": "pnpm run compile"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "mitori.connect",
+        "title": "Mitori: Connect to Database",
+        "icon": "$(database)"
+      },
+      {
+        "command": "mitori.refresh",
+        "title": "Mitori: Refresh Database View",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "mitori.openTablePreview",
+        "title": "Mitori: Open Table Preview",
+        "icon": "$(open-preview)"
+      },
+      {
+        "command": "mitori.openTablePreviewInNewTab",
+        "title": "Mitori: Open Table Preview in New Tab",
+        "icon": "$(link-external)"
+      },
+      {
+        "command": "mitori.openReferencedTablePreview",
+        "title": "Mitori: Open Referenced Table",
+        "icon": "$(link)"
+      },
+      {
+        "command": "mitori.openRelationshipMap",
+        "title": "Mitori: Open Relationship Map",
+        "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "mitori.explain",
+        "title": "Mitori: Explain Mitori",
+        "icon": "$(info)"
+      }
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "mitori",
+          "title": "Mitori",
+          "icon": "resources/mitori.svg"
+        }
+      ]
+    },
+    "views": {
+      "mitori": [
+        {
+          "id": "mitori.schemaView",
+          "name": "Mitori"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "mitori.connect",
+          "when": "view == mitori.schemaView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "mitori.refresh",
+          "when": "view == mitori.schemaView",
+          "group": "navigation@2"
+        },
+        {
+          "command": "mitori.openRelationshipMap",
+          "when": "view == mitori.schemaView",
+          "group": "navigation@3"
+        },
+        {
+          "command": "mitori.explain",
+          "when": "view == mitori.schemaView",
+          "group": "navigation@4"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "mitori.openTablePreviewInNewTab",
+          "when": "view == mitori.schemaView && viewItem == mitori.table",
+          "group": "inline@1"
+        },
+        {
+          "command": "mitori.openReferencedTablePreview",
+          "when": "view == mitori.schemaView && viewItem == mitori.foreignKeyColumn",
+          "group": "inline@1"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "dagre": "^0.8.5",
+    "dotenv": "^16.4.5",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "@types/dagre": "^0.7.54",
+    "@types/node": "^20.14.10",
+    "@types/pg": "^8.11.6",
+    "@types/vscode": "^1.90.0",
+    "@vscode/vsce": "^3.9.2",
+    "typescript": "^5.5.3"
+  },
+  "pnpm": {
+    "ignoredBuiltDependencies": [
+      "@vscode/vsce-sign",
+      "keytar"
+    ]
+  }
+}
