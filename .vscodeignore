@@ -7,3 +7,5 @@ out/**
 tsconfig.json
 *.tsbuildinfo
 mitori_vscode_plugin_plan.md
+README.md
+README.vsix.md

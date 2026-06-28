@@ -98,19 +98,69 @@ function writeVsix(baseEntries, productionNodeModulesDir, outputPath) {
       }
     }
 
-    addDirectoryToZip(zip, productionNodeModulesDir, 'extension/node_modules');
+    addFlatNodeModulesToZip(zip, productionNodeModulesDir, 'extension/node_modules');
     zip.end();
   });
 }
 
-function addDirectoryToZip(zip, directory, archiveRoot) {
+function addFlatNodeModulesToZip(zip, nodeModulesDir, archiveRoot) {
+  const packagePaths = collectFlatPackages(nodeModulesDir);
+
+  for (const [packageName, packagePath] of packagePaths) {
+    addPackageDirectoryToZip(zip, packagePath, `${archiveRoot}/${packageName}`);
+  }
+}
+
+function collectFlatPackages(nodeModulesDir) {
+  const packagePaths = new Map();
+  collectPackagesFromDirectory(packagePaths, nodeModulesDir);
+  collectPackagesFromDirectory(packagePaths, path.join(nodeModulesDir, '.pnpm', 'node_modules'));
+  return packagePaths;
+}
+
+function collectPackagesFromDirectory(packagePaths, directory) {
+  if (!fs.existsSync(directory)) {
+    return;
+  }
+
   for (const entryName of fs.readdirSync(directory)) {
     const absolutePath = path.join(directory, entryName);
+
+    if (entryName.startsWith('.')) {
+      continue;
+    }
+
+    if (entryName.startsWith('@')) {
+      for (const scopedEntryName of fs.readdirSync(absolutePath)) {
+        addFlatPackage(packagePaths, `${entryName}/${scopedEntryName}`, path.join(absolutePath, scopedEntryName));
+      }
+      continue;
+    }
+
+    addFlatPackage(packagePaths, entryName, absolutePath);
+  }
+}
+
+function addFlatPackage(packagePaths, packageName, packagePath) {
+  const realPackagePath = fs.realpathSync(packagePath);
+
+  if (fs.statSync(realPackagePath).isDirectory() && !packagePaths.has(packageName)) {
+    packagePaths.set(packageName, realPackagePath);
+  }
+}
+
+function addPackageDirectoryToZip(zip, directory, archiveRoot) {
+  for (const entryName of fs.readdirSync(directory)) {
+    if (entryName === 'node_modules') {
+      continue;
+    }
+
+    const absolutePath = path.join(directory, entryName);
     const archivePath = `${archiveRoot}/${entryName}`;
-    const stat = fs.lstatSync(absolutePath);
+    const stat = fs.statSync(absolutePath);
 
     if (stat.isDirectory()) {
-      addDirectoryToZip(zip, absolutePath, archivePath);
+      addPackageDirectoryToZip(zip, absolutePath, archivePath);
     } else if (stat.isFile()) {
       zip.addFile(absolutePath, archivePath, { mode: stat.mode });
     }

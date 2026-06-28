@@ -5,6 +5,10 @@
   "version": "0.0.1",
   "publisher": "mitori",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/A-Jose2000/mitori.git"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },

@@ -318,7 +318,7 @@ function renderColumnsTable(columns: DatabaseColumn[]): string {
   const rows =
     columns.length > 0
       ? columns.map(renderColumnRow).join('')
-      : '<tr><td colspan="4" class="empty">No columns found.</td></tr>';
+      : '<tr><td colspan="5" class="empty">No columns found.</td></tr>';
 
   return `
     <div class="section-heading">
@@ -333,6 +333,7 @@ function renderColumnsTable(columns: DatabaseColumn[]): string {
             <th>Type</th>
             <th>Markers</th>
             <th>Reference</th>
+            <th>SQL</th>
           </tr>
         </thead>
         <tbody>${rows}</tbody>
@@ -354,12 +355,22 @@ function renderColumnRow(column: DatabaseColumn): string {
     : '-';
 
   return `
-    <tr>
+    <tr title="${escapeHtml(column.sqlDefinition)}">
       <td class="strong">${escapeHtml(column.name)}</td>
       <td><code>${escapeHtml(column.dataType)}</code></td>
       <td><div class="badges">${markers}</div></td>
       <td>${escapeHtml(reference)}</td>
+      <td class="column-sql-cell">${renderColumnSqlDisclosure(column)}</td>
     </tr>
+  `;
+}
+
+function renderColumnSqlDisclosure(column: DatabaseColumn): string {
+  return `
+    <details class="column-sql">
+      <summary title="${escapeHtml(column.sqlDefinition)}">SQL</summary>
+      <code class="definition">${escapeHtml(column.sqlDefinition)}</code>
+    </details>
   `;
 }
 
@@ -1635,6 +1646,30 @@ function renderDocument(
 
     tr:last-child td {
       border-bottom: 0;
+    }
+
+    tbody tr:hover td {
+      background: var(--vscode-list-hoverBackground);
+    }
+
+    .column-sql-cell {
+      min-width: 220px;
+      white-space: normal;
+    }
+
+    .column-sql summary {
+      cursor: pointer;
+      color: var(--vscode-textLink-foreground);
+      font-weight: 600;
+      outline-offset: 2px;
+    }
+
+    .column-sql[open] summary {
+      margin-bottom: 6px;
+    }
+
+    .column-sql .definition {
+      max-width: 560px;
     }
 
     .preview {

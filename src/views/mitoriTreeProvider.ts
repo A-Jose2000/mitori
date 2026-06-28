@@ -276,6 +276,7 @@ function formatColumnTooltip(column: DatabaseColumn): string {
   const lines = [
     `${column.schema}.${column.table}.${column.name}`,
     `Type: ${column.dataType}`,
+    `SQL: ${column.sqlDefinition}`,
     column.isNullable ? 'Nullable' : 'Not null',
     column.isPrimaryKey ? 'Primary key' : undefined,
     column.foreignKey

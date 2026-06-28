@@ -33,6 +33,7 @@ export interface DatabaseColumn {
   table: string;
   name: string;
   dataType: string;
+  sqlDefinition: string;
   isNullable: boolean;
   isPrimaryKey: boolean;
   foreignKey?: ForeignKeyReference;

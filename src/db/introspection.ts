@@ -27,10 +27,10 @@ export class PostgresIntrospection {
   }
 
   async getTables(schemaName: string): Promise<DatabaseTable[]> {
-    const result = await this.client.query<{ schema: string; name: string; estimated_row_count: string | null }>(
+    const result = await this.client.query<{ schema_name: string; name: string; estimated_row_count: string | null }>(
       `
         select
-          n.nspname as schema,
+          n.nspname as schema_name,
           c.relname as name,
           case
             when c.reltuples >= 0 then greatest(round(c.reltuples)::bigint, 0)::text
@@ -46,17 +46,17 @@ export class PostgresIntrospection {
     );
 
     return result.rows.map((row) => ({
-      schema: row.schema,
+      schema: row.schema_name,
       name: row.name,
       estimatedRowCount: parseOptionalInteger(row.estimated_row_count),
     }));
   }
 
   async getAllTables(): Promise<DatabaseTable[]> {
-    const result = await this.client.query<{ schema: string; name: string; estimated_row_count: string | null }>(
+    const result = await this.client.query<{ schema_name: string; name: string; estimated_row_count: string | null }>(
       `
         select
-          n.nspname as schema,
+          n.nspname as schema_name,
           c.relname as name,
           case
             when c.reltuples >= 0 then greatest(round(c.reltuples)::bigint, 0)::text
@@ -72,7 +72,7 @@ export class PostgresIntrospection {
     );
 
     return result.rows.map((row) => ({
-      schema: row.schema,
+      schema: row.schema_name,
       name: row.name,
       estimatedRowCount: parseOptionalInteger(row.estimated_row_count),
     }));
@@ -83,6 +83,11 @@ export class PostgresIntrospection {
       this.client.query<{
         column_name: string;
         data_type: string;
+        column_default: string | null;
+        identity_generation: string | null;
+        generated_kind: string | null;
+        collation_schema: string | null;
+        collation_name: string | null;
         is_nullable: boolean;
         ordinal_position: number;
       }>(
@@ -90,11 +95,31 @@ export class PostgresIntrospection {
           select
             a.attname as column_name,
             pg_catalog.format_type(a.atttypid, a.atttypmod) as data_type,
+            pg_catalog.pg_get_expr(ad.adbin, ad.adrelid) as column_default,
+            case a.attidentity
+              when 'a' then 'ALWAYS'
+              when 'd' then 'BY DEFAULT'
+              else null
+            end as identity_generation,
+            case a.attgenerated
+              when 's' then 'STORED'
+              when 'v' then 'VIRTUAL'
+              else null
+            end as generated_kind,
+            collation_namespace.nspname as collation_schema,
+            coll.collname as collation_name,
             not a.attnotnull as is_nullable,
             a.attnum as ordinal_position
           from pg_catalog.pg_attribute a
           join pg_catalog.pg_class c on c.oid = a.attrelid
           join pg_catalog.pg_namespace n on n.oid = c.relnamespace
+          join pg_catalog.pg_type t on t.oid = a.atttypid
+          left join pg_catalog.pg_attrdef ad on ad.adrelid = a.attrelid and ad.adnum = a.attnum
+          left join pg_catalog.pg_collation coll
+            on coll.oid = a.attcollation
+            and a.attcollation <> t.typcollation
+            and a.attcollation <> 0
+          left join pg_catalog.pg_namespace collation_namespace on collation_namespace.oid = coll.collnamespace
           where n.nspname = $1
             and c.relname = $2
             and c.relkind in ('r', 'p')
@@ -110,17 +135,33 @@ export class PostgresIntrospection {
 
     const primaryKeyColumns = new Set(primaryKeys);
     const foreignKeyByColumn = new Map(foreignKeys.map((foreignKey) => [foreignKey.columnName, foreignKey]));
+    const foreignKeyConstraintColumnCounts = countForeignKeyConstraintColumns(foreignKeys);
 
     return columnsResult.rows.map((row) => {
       const foreignKey = foreignKeyByColumn.get(row.column_name);
+      const isPrimaryKey = primaryKeyColumns.has(row.column_name);
+      const singleColumnForeignKey =
+        foreignKey && foreignKeyConstraintColumnCounts.get(foreignKey.constraintName) === 1 ? foreignKey : undefined;
 
       return {
         schema: schemaName,
         table: tableName,
         name: row.column_name,
         dataType: row.data_type,
+        sqlDefinition: buildColumnSqlDefinition({
+          name: row.column_name,
+          dataType: row.data_type,
+          defaultExpression: row.column_default,
+          identityGeneration: normalizeIdentityGeneration(row.identity_generation),
+          generatedKind: normalizeGeneratedKind(row.generated_kind),
+          collationSchema: row.collation_schema,
+          collationName: row.collation_name,
+          isNullable: row.is_nullable,
+          isSingleColumnPrimaryKey: primaryKeyColumns.size === 1 && isPrimaryKey,
+          singleColumnForeignKey,
+        }),
         isNullable: row.is_nullable,
-        isPrimaryKey: primaryKeyColumns.has(row.column_name),
+        isPrimaryKey,
         foreignKey: foreignKey
           ? {
               referencedSchema: foreignKey.referencedSchema,
@@ -390,4 +431,72 @@ function parseOptionalInteger(value: string | null): number | undefined {
 
   const parsed = Number.parseInt(value, 10);
   return Number.isFinite(parsed) ? parsed : undefined;
+}
+
+function countForeignKeyConstraintColumns(foreignKeys: DatabaseForeignKey[]): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  for (const foreignKey of foreignKeys) {
+    counts.set(foreignKey.constraintName, (counts.get(foreignKey.constraintName) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
+function buildColumnSqlDefinition(input: {
+  name: string;
+  dataType: string;
+  defaultExpression: string | null;
+  identityGeneration: 'ALWAYS' | 'BY DEFAULT' | undefined;
+  generatedKind: 'STORED' | 'VIRTUAL' | undefined;
+  collationSchema: string | null;
+  collationName: string | null;
+  isNullable: boolean;
+  isSingleColumnPrimaryKey: boolean;
+  singleColumnForeignKey: DatabaseForeignKey | undefined;
+}): string {
+  const parts = [quoteIdentifier(input.name), input.dataType];
+
+  if (input.collationSchema && input.collationName) {
+    parts.push(`COLLATE ${formatQualifiedIdentifier(input.collationSchema, input.collationName)}`);
+  }
+
+  if (input.identityGeneration) {
+    parts.push(`GENERATED ${input.identityGeneration} AS IDENTITY`);
+  } else if (input.generatedKind && input.defaultExpression) {
+    parts.push(`GENERATED ALWAYS AS (${input.defaultExpression}) ${input.generatedKind}`);
+  } else if (input.defaultExpression) {
+    parts.push(`DEFAULT ${input.defaultExpression}`);
+  }
+
+  if (!input.isNullable) {
+    parts.push('NOT NULL');
+  }
+
+  if (input.isSingleColumnPrimaryKey) {
+    parts.push('PRIMARY KEY');
+  }
+
+  if (input.singleColumnForeignKey) {
+    parts.push(
+      `REFERENCES ${formatQualifiedIdentifier(
+        input.singleColumnForeignKey.referencedSchema,
+        input.singleColumnForeignKey.referencedTable,
+      )}(${quoteIdentifier(input.singleColumnForeignKey.referencedColumn)})`,
+    );
+  }
+
+  return parts.join(' ');
+}
+
+function normalizeIdentityGeneration(value: string | null): 'ALWAYS' | 'BY DEFAULT' | undefined {
+  return value === 'ALWAYS' || value === 'BY DEFAULT' ? value : undefined;
+}
+
+function normalizeGeneratedKind(value: string | null): 'STORED' | 'VIRTUAL' | undefined {
+  return value === 'STORED' || value === 'VIRTUAL' ? value : undefined;
+}
+
+function formatQualifiedIdentifier(...identifiers: string[]): string {
+  return identifiers.map((identifier) => quoteIdentifier(identifier)).join('.');
 }

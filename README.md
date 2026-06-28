@@ -20,6 +20,7 @@ Mitori tries to bring visibility into code-based development.
 - Shows schemas
 - Shows tables
 - Shows columns
+- Shows reconstructed SQL column definitions
 - Marks primary keys
 - Marks foreign keys
 - Shows sample rows
